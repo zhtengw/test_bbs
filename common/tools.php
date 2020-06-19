@@ -141,4 +141,119 @@ function vcode($width=120,$height=40,$text_num=4,$fsize=24,$pixel_num=100,$line_
 
     return $vcode;
 }
+
+// 分页
+/* 参数说明：
+    $sum: 总记录数
+    $slice: 每页记录数
+    $page: 当前页码
+    $page_btns: 页码按钮数
+   返回值：数组类型
+    ['count']: 页面数
+    ['cur_page']: 当前页码
+    ['sql']: 用于SQL查询的limit参数
+    ['html']: 分页器html 
+*/
+function paging($sum, $slice,$page,$page_btns=10){
+    // $page 为当前页码
+    if(!isset($page) || !is_numeric($page) || $page<1){
+        $page=1;
+    }
+    
+    if($sum < 1) return ['count' => '',
+            'cur_page' => $page,
+            'sql' => '',
+            'html' => ''];
+;
+    // 总页数
+    $pages_count = ceil($sum/$slice);
+    $page = $page > $pages_count ? $pages_count: $page;
+
+    $sql_limit = 'limit '.($page-1)*$slice.','.$slice;
+    // 页码条显示
+        $arr_url=parse_url($_SERVER['REQUEST_URI']);
+        $url_path=$arr_url['path'];
+
+        $url='';
+        if(isset($arr_url['query'])){
+            parse_str($arr_url['query'],$arr_query);
+            unset($arr_query['page']);
+            if(!empty($arr_query)){
+                $other_query=http_build_query($arr_query);
+                $url=$url_path.'?'.$other_query.'&page=';
+            } else {
+                $url=$url_path.'?page=';
+            }
+        } else {
+            $url=$url_path.'?page=';
+        }
+        
+        
+        $page_btns = isset($page_btns) || $page_btns > 0?$page_btns: 10; // 显示的最多页码按钮数
+
+        $page_array=[];
+        if($pages_count<=$page_btns){
+		    for ($p=1;$p<=$pages_count;$p++){
+		    	if ($p == $page) {
+			    	$page_array[$p] ='<span>'.$p.'</span>';
+		    	} else {
+			    	$page_array[$p] = '<a href="'.$url.$p.'">'.$p.'</a>';
+			    }
+            }
+        } else {
+            $left_btns = floor(($page_btns-1)/2);
+
+            $start = $page-$left_btns;
+            
+            // 最大页码不能超过页码数
+            if (($start+$page_btns-1)>$pages_count) $start=$pages_count-($page_btns-1);
+
+            // 起始页码不小于1
+            if ($start <1) $start = 1;
+
+            // 最大页码
+            $end = $start+$page_btns-1;
+            for ($i=0;$i<$page_btns;$i++){
+                if ($start == $page) {
+                    $page_array[$start] = '<span>'.$start.'</span>';
+                } else{
+			    	$page_array[$start] = '<a href="'.$url.$start.'">'.$start.'</a>';
+                }
+                $start++;
+            }
+        }
+        if(count($page_array)>=3){
+            reset($page_array);
+            $first = key($page_array);
+            end($page_array);
+            $last = key($page_array);
+            // 如果起始页码不是首页，显示为首页页码
+            if ($first != 1){
+                array_shift($page_array);
+                array_unshift($page_array,'<a href="'.$url.'1">...1</a>');
+            }
+            // 如果最大页码小于总页码，显示为末页页码
+            if ($last != $pages_count){
+                array_pop($page_array);
+                array_push($page_array,'<a href="'.$url.$pages_count.'">...'.$pages_count.'</a>');
+            }
+        }
+
+        if($page > 1) {
+            array_unshift($page_array,'<a href="'.$url.($page-1).'">« 上一页</a>');
+        }
+		if($page < $pages_count) {
+            array_push($page_array,'<a href="'.$url.($page+1).'">下一页 »</a>');
+        }
+        
+        array_unshift($page_array,'<div class="pages">');
+        array_push($page_array,'</div>');
+        $page_html=implode(' ',$page_array);
+
+    return ['count' => $pages_count,
+            'cur_page' => $page,
+            'sql' => $sql_limit,
+            'html' => $page_html];
+
+}
 ?>

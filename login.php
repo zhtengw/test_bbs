@@ -27,6 +27,7 @@ if(isset($_POST['login'])){
         save_cookie($link,$login_info['name'],$login_info['pwd'],$time);
 
 
+        // Todo: 登录后跳转到登录前页面
         skip_page('index.php', 'ok', '用户登录成功，跳转到首页！');
     } else {
         skip_page('login.php', 'error', '用户名或密码错误，请重试！');

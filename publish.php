@@ -13,6 +13,7 @@ $char_max_title = char_max_len($link,'bbs_content','title');
 
 if(isset($_POST['publish'])){
     $post_content = real_string($link,$_POST);
+    //如果帖子需要修改，会保留原填写内容
     $amend_url = 'publish.php?post='.rawurlencode(json_encode($post_content));
 
     //检查各字段
@@ -46,7 +47,8 @@ if(isset($_POST['publish'])){
     db_exec($link,$query);
 
     if(mysqli_affected_rows($link) == 1){
-        skip_page('index.php', 'ok', '发帖成功 ！');
+        $newid = mysqli_insert_id($link);
+        skip_page('post.php?id='.$newid, 'ok', '发帖成功 ！');
     } else {
         skip_page($amend_url, 'error', '发帖失败，请重试！');
     }
@@ -70,14 +72,20 @@ $template['css']=['style/public.css',
 			<select name="module_id">
                 <option value=""  disabled="" selected>请选择一个版块</option>
                             <?php
+                                if(isset($_GET['parent_id'])&&is_numeric($_GET['parent_id'])){
+                                    $limit_parent = ' and parent.id='.$_GET['parent_id'].' ';
+                                } else {
+                                    $limit_parent = ' ';
+                                }
                                 $query = 'select
                                         child.id,
                                         child.module_name,
                                         parent.module_name parent_module_name
                                         from bbs_child_module child,
                                         bbs_parent_module parent
-                                        where child.parent_module_id=parent.id
-                                        order by parent.id
+                                        where child.parent_module_id=parent.id'.
+                                        $limit_parent.
+                                        'order by parent.sort
                                         ';
                                 
                                 $result = db_exec($link,$query);
@@ -91,7 +99,7 @@ $template['css']=['style/public.css',
                                         $group_name = $data['parent_module_name'];
                                         echo '<optgroup label="'.$group_name.'">';
                                     }
-                                    if ($data['id'] == $post_content['module_id']){
+                                    if ($data['id'] == $post_content['module_id'] || $data['id']==$_GET['child_id']){
                                         echo '<option value="'.$data['id'].'" selected>'.$data['module_name'].'</option>';
                                     }else {
                                         echo '<option value="'.$data['id'].'">'.$data['module_name'].'</option>';

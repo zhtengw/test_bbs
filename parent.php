@@ -8,6 +8,7 @@ $link = db_connect();
 
 $member = is_login($link);
 
+$thispage=basename($_SERVER['SCRIPT_NAME']);
 
 $template['title']='父版块列表';
 $template['css']=['style/public.css',
@@ -49,6 +50,11 @@ if(mysqli_num_rows($child_result)!=0){
     skip_page('index.php','attention','“'.$parent['module_name'].'”下没有子版块，跳转到首页。');
 }
 
+// 每页帖子数，
+// Todo：增加一个下拉列表通过页面设置
+$slice = 20;
+$page_btns = 5; // 显示的最大页码按钮数
+$paging = paging($post_count,$slice,$_GET['page'],$page_btns);
 
 ?>
 <?php include 'include/header.php' ;?>
@@ -63,22 +69,15 @@ if(mysqli_num_rows($child_result)!=0){
                       ?>
                   </div>
 				<div class="pages_wrap">
-					<a class="btn publish" href=""></a>
-					<div class="pages">
-						<a>« 上一页</a>
-						<a>1</a>
-						<span>2</span>
-						<a>3</a>
-						<a>4</a>
-						<a>...13</a>
-						<a>下一页 »</a>
-					</div>
+				    <a class="btn publish" href="publish.php?parent_id=<?php echo $parent['id'] ?>" target="_blank"></a>
+						<?php echo $paging['html'];?>
 					<div style="clear:both;"></div>
 				</div>
 			</div>
 			<div style="clear:both;"></div>
 			<ul class="postsList">
                 <?php
+                // Todo: 最后回复的帖子顶到最前
                     $post_query = 'select post.*,
                                  member.name member_name,
                                  member.photo,
@@ -90,9 +89,20 @@ if(mysqli_num_rows($child_result)!=0){
                                  where post.member_id=member.id
                                  and post.module_id in('.$child_ids.')
                                  and post.module_id=child.id
-                                 order by post.mod_time desc';
+                                 order by post.mod_time desc '.
+                                 $paging['sql'];
                     $post_result = db_exec($link,$post_query);
                     while($post=mysqli_fetch_assoc($post_result)){
+                        $post['title']=htmlspecialchars($post['title']);
+
+						$reply_query = 'select * from bbs_reply where content_id='.$post['id'].' order by pub_time desc';
+                        $reply_result = db_exec($link,$reply_query);
+                        $reply_count = mysqli_num_rows($reply_result);
+						if($reply=mysqli_fetch_assoc($reply_result)){
+							$last_reply = $reply['pub_time'];
+						} else {
+							$last_reply = '无';
+						}
                         /*
                         $child_query = 'select * from bbs_child_module where id='.$post['module_id'];
                         $child_result = db_exec($link,$child_query);
@@ -102,18 +112,20 @@ if(mysqli_num_rows($child_result)!=0){
                 <li>
 					<div class="smallPic">
 						<a href="#">
-							<img width="45" height="45"src="<?php $avatar= empty($post['photo'])? 'style/photo.jpg': $post['photo']; echo $avatar; ?>">
+							<img width="45" height="45" src="<?php $avatar= empty($post['photo'])? 'style/photo.jpg': $post['photo']; echo $avatar; ?>">
 						</a>
 					</div>
 					<div class="subject">
-						<div class="titleWrap"><a href="child.php?id=<?php echo $post['child_id'];?>">[<?php echo $post['child_module_name'];?>]</a>&nbsp;&nbsp;<h2><a href="#"><?php echo $post['title'];?></a></h2></div>
+						<div class="titleWrap"><a href="child.php?id=<?php echo $post['child_id'];?>">[<?php echo $post['child_module_name'];?>]</a>&nbsp;&nbsp;<h2><a href="post.php?id=<?php echo $post['id'];?>"><?php echo $post['title'];?></a></h2></div>
 						<p>
-							楼主：<a style="color:#999" href="member.php?id=<?php echo $post['member_id'];?>"><?php echo $post['member_name'];?></a>&nbsp;<?php echo $post['pub_time'];?>&nbsp;&nbsp;&nbsp;&nbsp;最后回复：2014-12-08
+                            楼主：<a style="color:#999" href="member.php?id=<?php echo $post['member_id'];?>"><?php echo $post['member_name'];?></a>
+                            &nbsp;<?php echo $post['pub_time'];?>&nbsp;&nbsp;&nbsp;&nbsp;
+							最后回复：<a style="color:#999" href="post.php?id=<?php echo $post['id'];?>&reply_id=<?php echo $reply['id'];?>"><?php echo $last_reply ;?></a>
 						</p>
 					</div>
 					<div class="count">
 						<p>
-							回复<br /><span>41</span>
+							回复<br /><span><?php echo $reply_count;?></span>
 						</p>
 						<p>
 							浏览<br /><span><?php echo $post['views'];?></span>
@@ -128,16 +140,8 @@ if(mysqli_num_rows($child_result)!=0){
 				
 			</ul>
 			<div class="pages_wrap">
-				<a class="btn publish" href=""></a>
-				<div class="pages">
-					<a>« 上一页</a>
-					<a>1</a>
-					<span>2</span>
-					<a>3</a>
-					<a>4</a>
-					<a>...13</a>
-					<a>下一页 »</a>
-				</div>
+				<a class="btn publish" href="publish.php?parent_id=<?php echo $parent['id'] ?>" target="_blank"></a>
+						<?php echo $paging['html'];?>
 				<div style="clear:both;"></div>
 			</div>
 		</div>
