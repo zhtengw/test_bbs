@@ -45,7 +45,7 @@ $reply_result = db_exec($link,$reply_query);
 
 $reply_count = mysqli_num_rows($reply_result);
 
-$slice = 10;
+$slice = 4;
 
 // 如果有回复id，当前页为这条回复所在页面
 if(isset($_GET['reply_id']) && is_numeric($_GET['reply_id']) && !isset($_GET['page'])){
@@ -77,7 +77,7 @@ $paging = paging($reply_count,$slice,$_GET['page'],$page_btns);
 		<div class="wrapContent">
 			<div class="left">
 				<div class="face">
-					<a target="_blank" href="">
+					<a target="_blank" href="member.php?id=<?php echo $post['member_id'];?>">
 						<img width="120" height="120" src="<?php $avatar= empty($post_member['photo'])? 'style/photo.jpg': $post_member['photo']; echo $avatar; ?>" />
 					</a>
 				</div>
@@ -92,14 +92,19 @@ $paging = paging($reply_count,$slice,$_GET['page'],$page_btns);
 					<div style="clear:both;"></div>
 				</div>
 				<div class="pubdate">
-                    <span class="date">发布于：<?php echo $post['pub_time']?> </span>
+                    <span class="date">发布于：<?php echo $post['pub_time']?> </span>&nbsp;&nbsp;
                     <?php 
                         if($post['pub_time'] != $post['mod_time']){
                     ?>
-                        &nbsp;&nbsp;<span class="date">编辑于：<?php echo $post['mod_time']?> </span>
+                        &nbsp;&nbsp;<span class="date">编辑于：<?php echo $post['mod_time']?> </span>&nbsp;&nbsp;
                     <?php   
                     }
                     ?>
+                    <?php
+                        if($post_member['id']==$member['id']){
+                    ?>
+                        <span class="date">&nbsp;&nbsp;<a target='_blank' href='post_edit.php?id=<?php echo $post['id'];?>'>编辑</a></span>
+                    <?php }?>
 					<span class="floor" style="color:red;font-size:14px;font-weight:bold;">楼主</span>
 				</div>
 				<div class="content">
@@ -116,9 +121,9 @@ $paging = paging($reply_count,$slice,$_GET['page'],$page_btns);
 		$reply_query = 'select * from bbs_reply where content_id='.$_GET['id'].' order by pub_time '.$paging['sql'];
 		$reply_result = db_exec($link,$reply_query);
 		$i=1+($paging['cur_page']-1)*$slice;//每页起始的回复计数，也即起始楼层
-		$floors=[]; //储存楼层的回复id
+		//$floors=[]; //储存楼层的回复id
 		while($reply=mysqli_fetch_assoc($reply_result)){
-			$floors[$reply['id']]=$i;
+			//$floors[$reply['id']]=$i;
 			$reply['content']=nl2br(htmlspecialchars($reply['content']));
 			
 			$reply_member_query = 'select * from bbs_member where id='.$reply['member_id'];
@@ -130,25 +135,30 @@ $paging = paging($reply_count,$slice,$_GET['page'],$page_btns);
 		<div class="wrapContent">
 			<div class="left">
 				<div class="face">
-					<a target="_blank" href="">
+					<a target="_blank" href="member.php?id=<?php echo $reply['member_id'];?>">
 						<img width="120" height="120" src="<?php $avatar= empty($reply_member['photo'])? 'style/photo.jpg': $reply_member['photo']; echo $avatar; ?>" />
 					</a>
 				</div>
 				<div class="name">
-					<a href="member.php?id=<?php echo $reply_member['id']?>"><?php echo $reply_member['name'];?></a>
+					<a target="_blank" href="member.php?id=<?php echo $reply_member['id']?>"><?php echo $reply_member['name'];?></a>
 				</div>
 			</div>
 			<div class="right">
 				
 				<div class="pubdate">
-					<span class="date">回复时间：<?php echo $reply['pub_time']?> </span>
+					<span class="date">回复时间：<?php echo $reply['pub_time']?> </span>&nbsp;&nbsp;
 					<?php 
                         if($reply['pub_time'] != $reply['mod_time']){
                     ?>
-                        &nbsp;&nbsp;<span class="date">编辑于：<?php echo $reply['mod_time']?> </span>
+                        &nbsp;&nbsp;<span class="date">编辑于：<?php echo $reply['mod_time']?> </span>&nbsp;&nbsp;
                     <?php   
                     }
                     ?>
+                    <?php
+                        if($reply_member['id']==$member['id']){
+                    ?>
+                        <span class="date">&nbsp;&nbsp;<a target='_blank' href='reply_edit.php?id=<?php echo $reply['id'];?>'>编辑</a></span>
+                    <?php }?>
 					<span class="floor"><?php echo $i;?>楼&nbsp;|&nbsp;<a href="reply.php?post_id=<?php echo $post['id'];?>&floor=<?php echo $i; ?>&quote_id=<?php echo $reply['id'];?>">引用</a></span>
 				</div>
 				<div class="content">
@@ -160,6 +170,9 @@ $paging = paging($reply_count,$slice,$_GET['page'],$page_btns);
 							if($quote=mysqli_fetch_assoc($quote_result)){
 								$quote['content']=nl2br(htmlspecialchars($quote['content']));
 
+                    			$quote_count_query = 'select * from bbs_reply where content_id='.$quote['content_id'].' and id<='.$quote['id'];
+								$floor = record_count($link,$quote_count_query);
+
 								$quote_member_query = 'select * from bbs_member where id='.$quote['member_id'];
 								$quote_member_result = db_exec($link,$quote_member_query);
 								if(!$quote_member=mysqli_fetch_assoc($quote_member_result)){
@@ -168,11 +181,18 @@ $paging = paging($reply_count,$slice,$_GET['page'],$page_btns);
 					?>
 
 					<div class="quote">
-					<h2>引用 <?php echo $floors[$quote['id']];?>楼 <?php echo $quote_member['name'];?> 发表的: </h2>
+					<h2>引用 <?php echo $floor;?>楼 <?php echo $quote_member['name'];?> 发表的: </h2>
                     <?php echo $quote['content']; ?>
 					</div>
-					<?php 
-							}
+					<?php
+	  			                } else {
+			        ?>
+                    <div class="quote">
+			        <h2>引用回帖已删除</h2>
+			        </div>
+			        <?php
+			     	           }
+							
 						} ?>
 
 				<!-- 回帖内容-->

@@ -111,7 +111,7 @@ $paging = paging($post_count,$slice,$_GET['page'],$page_btns);
                 ?>
                 <li>
 					<div class="smallPic">
-						<a href="#">
+						<a href="member.php?id=<?php echo $post['member_id'];?>">
 							<img width="45" height="45" src="<?php $avatar= empty($post['photo'])? 'style/photo.jpg': $post['photo']; echo $avatar; ?>">
 						</a>
 					</div>

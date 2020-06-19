@@ -5,6 +5,8 @@ include_once 'common/mysql.php';
 
 $link = db_connect(); 
 
+$url_refer_arr = parse_url($_SERVER['HTTP_REFERER']);
+$url_refer =$url_refer_arr['path'].'?'.$url_refer_arr['query']; 
 if($member=is_login($link)){
     skip_page('index.php', 'attention', '您已登录，跳转到首页！');
 }
@@ -28,7 +30,8 @@ if(isset($_POST['login'])){
 
 
         // Todo: 登录后跳转到登录前页面
-        skip_page('index.php', 'ok', '用户登录成功，跳转到首页！');
+        // 现在的方案，如果登录错误，再重新输入将没法正确跳转
+        skip_page($login_info['url_refer'], 'ok', '用户登录成功，跳转登录前页面！');
     } else {
         skip_page('login.php', 'error', '用户名或密码错误，请重试！');
     }
@@ -51,6 +54,7 @@ $template['css']=['style/public.css',
             -->
             <a style="cursor:pointer" title="看不清？点击换一张" onclick="img.src='vcode.php?id='+Math.random();"><img id="img" class="vcode" src="vcode.php" /></a>
             <div style="clear:both;"></div>
+            <input type=hidden name="url_refer" value="<?php echo $url_refer;?>">
             <input class="btn" name="login" type="submit" value="登录" />
             <label style="float:none;margin:20px 0 60px 20px;vertical-align:middle;display:inline-block;">
                 <input style="width:15px;" name="keep_login" type="checkbox" value="on" />&nbsp;保持登录状态
