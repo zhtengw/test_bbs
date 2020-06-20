@@ -256,4 +256,106 @@ function paging($sum, $slice,$page,$page_btns=10){
             'html' => $page_html];
 
 }
+function file_upload($save_path,$post_name,$max_size='1M',$allow_type=['jpg','jpeg','png','gif']){
+    $return_data=[];
+    $phpini_upload_size=to_bytes(ini_get('upload_max_filesize'));
+    $max_size_bytes=to_bytes($max_size);
+
+    if ($max_size_bytes>$phpini_upload_size) {
+        $return_data['status'] = false;
+        $return_data['message'] = 'Uploaded size '.$max_size.' beyond the limit';
+        return $return_data;
+    }
+
+    $arr_upload_status=[
+        0 => 'OK',
+        1 => 'EXCEED INI SIZE',
+        2 => 'EXCEED FORM SIZE',
+        3 => 'PARTIAL UPLOADED',
+        4 => 'NO FILE',
+        6 => 'NO TMP DIR',
+        7 => 'CANT WRITE',
+    ];
+
+    
+    if(!isset($_FILES[$post_name]['error'])){
+        $return_data['status'] = false;
+        $return_data['message'] = 'Unknown error, no variable $_FILES[\''.$post_name.'\'][\'error\']';
+        return $return_data;
+    }
+    if($_FILES[$post_name]['error']){
+        $return_data['status'] = false;
+        $return_data['message'] = $arr_upload_status[$_FILES[$post_name]['error']];
+        return $return_data;
+    }
+    if(!is_uploaded_file($_FILES[$post_name]['tmp_name'])){
+        $return_data['status'] = false;
+        $return_data['message'] = 'Possible file upload attack: '. $_FILES[$post_name]['tmp_name'] .'.';
+        return $return_data;
+    }
+
+    if($_FILES[$post_name]['size']>$max_size_bytes){
+        $return_data['status'] = false;
+        $return_data['message'] = 'Uploaded File exceed '.$max_size;
+        return $return_data;
+    }
+       
+    $fileinfo = pathinfo($_FILES[$post_name]['name']);
+    if(!isset($fileinfo['extension'])) $fileinfo['extension'] = '';
+
+    if(!in_array($fileinfo['extension'],$allow_type)){
+        $return_data['status'] = false;
+        $return_data['message'] = 'Not allowed file type';
+        return $return_data;
+    }
+
+    if(!file_exists($save_path)){
+        if(!mkdir($save_path,0777,true)){
+            $return_data['status'] = false;
+            $return_data['message'] = 'Save path create failed.';
+            return $return_data;
+        }
+    }
+
+    $new_name = mt_rand(10000,99999).uniqid();
+    if(isset($fileinfo['extension'])) $new_name .= '.'.$fileinfo['extension'];
+    $full_path = rtrim($save_path,'/').'/'.$new_name;
+
+    if(!move_uploaded_file($_FILES[$post_name]['tmp_name'],$full_path)){
+        $return_data['status'] = false;
+        $return_data['message'] = 'Uploaded file save failed.';
+        return $return_data;
+    }
+
+    $return_data['status'] = true;
+    $return_data['path'] = $full_path;
+    $return_data['name'] = $new_name;
+    return $return_data;
+
+}
+
+function to_bytes($size){
+    /* Convert to bytes */
+    $unit = strtoupper(substr($size,-1));
+    $number = substr($size,0,-1);
+    $multiple=1;
+    switch ($unit) {
+        case 'K':
+            $multiple = 1024;
+            break;
+        case 'M':
+            $multiple = 1024*1024;
+            break;
+        case 'G':
+            $multiple = 1024*1024;
+            break;
+        case 'T':
+            $multiple = 1024*1024*1024;
+            break;
+        default:
+            return false;
+    }
+    return $multiple*$number;
+
+}
 ?>

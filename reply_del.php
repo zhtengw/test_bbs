@@ -11,6 +11,16 @@ if(!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 }
 
 $link = db_connect();
+if(!$member = is_login($link)){
+    skip_page('login.php', 'error', '请先登录！');
+}
+
+$reply_query = 'select member_id from bbs_reply where id='.$_GET['id'];
+$reply_result = db_exec($link,$reply_query);
+if($reply['member_id']!=$member['id']){
+    skip_page('index.php', 'error', '您没有权限！');
+
+}
 
 // 删除回复
 $query = 'delete from bbs_reply where id='.$_GET['id'];

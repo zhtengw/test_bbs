@@ -11,6 +11,16 @@ if(!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 }
 
 $link = db_connect();
+if(!$member = is_login($link)){
+    skip_page('login.php', 'error', '请先登录！');
+}
+
+$post_query = 'select member_id from bbs_content where id='.$_GET['id'];
+$post_result = db_exec($link,$post_query);
+if($post['member_id']!=$member['id']){
+    skip_page('index.php', 'error', '您没有权限！');
+
+}
 
 // 删除帖子及回复
 $query = [

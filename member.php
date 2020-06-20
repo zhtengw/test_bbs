@@ -99,7 +99,7 @@ $template['css']=['style/public.css',
                     <?php
                         if($member_browse['id']==$member['id']){
                     ?>
-                    <dd>操作：<a target="_blank" href="">修改头像</a> | <a target="_blank" href="">修改密码</a></dd>
+                    <dd>操作：<a target="_blank" href="avatar_upload.php">修改头像</a> | <a target="_blank" href="">修改密码</a></dd>
                     <?php }?>
 				</dl>
 				<div style="clear:both;"></div>

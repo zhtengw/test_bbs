@@ -1,0 +1,32 @@
+body {
+	font-size:12px;
+	font-family:微软雅黑;
+}
+h2 {
+	padding:0 0 10px 0;
+	border-bottom: 1px solid #e3e3e3;
+	color:#444;
+	font-size:16px;
+	padding:10px 50px 10px 20px;
+}
+h3 {
+	padding:10px 0 10px 0;
+	color:#444;
+}
+.upload {
+	padding:10px 50px 10px 50px;
+}
+.submit {
+	background-color: #3b7dc3;
+	color:#fff;
+	padding:5px 22px;
+	border-radius:2px;
+	border:0px;
+	cursor:pointer;
+	font-size:14px;
+}
+#main {
+	width:960px;
+	background:#fff;
+	margin:20px auto;
+}
