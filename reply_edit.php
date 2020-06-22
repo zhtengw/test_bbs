@@ -4,8 +4,9 @@ include_once 'common/tools.php';
 include_once 'common/mysql.php';
 
 $link = db_connect(); 
-
-if(!$member = is_login($link)){
+$member = is_login($link);
+$admin = is_admin_login($link);
+if(!$member && !$admin){
     skip_page('login.php', 'error', '请先登录！');
 }
 
@@ -23,7 +24,18 @@ $reply_result = db_exec($link,$reply_query);
 if(!$reply=mysqli_fetch_assoc($reply_result)){
     skip_page('index.php', 'error', '该回帖不存在！');
 }
-if($reply['member_id']!=$member['id']){
+$post_query = 'select * from bbs_content where id='.$reply['content_id'];
+$post_result = db_exec($link,$post_query);
+$post=mysqli_fetch_assoc($post_result);
+
+// 转义html字符
+$post['title']=htmlspecialchars($post['title']);
+
+$child_query = 'select * from bbs_child_module where id='.$post['module_id'];
+$child_result = db_exec($link,$child_query);
+$child=mysqli_fetch_assoc($child_result);
+// 发帖人、版主和后台管理员均有权限
+if($reply['member_id']!=$member['id'] && $child['member_id'] !=$member['id'] && !$admin ){
     skip_page('index.php', 'error', '您没有权限！');
 }
     
@@ -62,16 +74,6 @@ if(isset($_GET['reply'])){
     $reply['content'] = $reply_content['content'];
 }
 
-$post_query = 'select * from bbs_content where id='.$reply['content_id'];
-$post_result = db_exec($link,$post_query);
-$post=mysqli_fetch_assoc($post_result);
-
-// 转义html字符
-$post['title']=htmlspecialchars($post['title']);
-
-$child_query = 'select * from bbs_child_module where id='.$post['module_id'];
-$child_result = db_exec($link,$child_query);
-$child=mysqli_fetch_assoc($child_result);
 
 $parent_query = 'select * from bbs_parent_module where id='.$child['parent_module_id'];
 $parent_result = db_exec($link,$parent_query);

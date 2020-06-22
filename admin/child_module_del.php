@@ -7,6 +7,9 @@ include_once '../common/mysql.php';
 if(!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     skip_page('child_module.php', 'error', '参数错误！');
 }
+if(!$admin=is_admin_login($link)){
+    header('Location:admin_login.php');
+}
 
 $link = db_connect();
 $query = 'delete from bbs_child_module where id='.$_GET['id'];

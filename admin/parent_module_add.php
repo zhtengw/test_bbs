@@ -6,6 +6,9 @@ include_once '../common/mysql.php';
 $template['title']='添加父版块';
 
 $link = db_connect();
+if(!$admin=is_admin_login($link)){
+    header('Location:admin_login.php');
+}
 //$query = 'select module_name from bbs_parent_module';
 //$result = db_exec($link,$query);
 

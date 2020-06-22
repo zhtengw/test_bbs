@@ -10,10 +10,6 @@ $member = is_login($link);
 
 $thispage=basename($_SERVER['SCRIPT_NAME']);
 
-$template['title']='父版块列表';
-$template['css']=['style/public.css',
-                'style/list.css'];
-
 if(!isset($_GET['id'])||!is_numeric($_GET['id'])){
     header('Location:index.php');
 }
@@ -47,7 +43,7 @@ if(mysqli_num_rows($child_result)!=0){
     $today_query = 'select * from bbs_content where module_id in('.$child_ids.') and pub_time > CURDATE()';
     $today_count = record_count($link,$today_query);
 }else{
-    skip_page('index.php','attention','“'.$parent['module_name'].'”下没有子版块，跳转到首页。');
+    skip_page('index.php','attention','“'.$parent['module_name'].'”下没有子版块，请联系管理员添加，现在跳转到首页。');
 }
 
 // 每页帖子数，
@@ -56,6 +52,10 @@ $slice = 20;
 $page_btns = 5; // 显示的最大页码按钮数
 $paging = paging($post_count,$slice,$_GET['page'],$page_btns);
 
+
+$template['title']=$parent['module_name'];
+$template['css']=['style/public.css',
+                'style/list.css'];
 ?>
 <?php include 'include/header.php' ;?>
 	<?php include 'include/left.php' ;?>

@@ -77,9 +77,38 @@ function is_login($link){
         }
     } else {
         return false;
-
     }
+}
 
+// 保存管理员cookie
+function save_admin_cookie($link,$name,$pwd,$time=0){
+    $time = $time == 0 ? $time : time()+$time;
+    setcookie("BBS_admin[name]",$name,$time);
+    setcookie('BBS_admin[pwd]',sha1(md5($pwd)),$time);
+    $lasttime_query = 'update bbs_admin set last_time=now() where name="'.$name.'"';
+    db_exec($link,$lasttime_query);
+    return true;
+}
+// 删除cookie
+function del_admin_cookie(){
+    setcookie("BBS_admin[name]",'',time()-3600);
+    setcookie('BBS_admin[pwd]','',time()-3600);
+    return true;
+}
+// 管理员登录状态验证
+function is_admin_login($link){
+    if(isset($_SESSION['admin']['name']) && isset($_SESSION['admin']['pwd'])){
+        $search_query = 'select * from bbs_admin where name="'.$_SESSION['admin']['name'].'" and sha1(pwd)="'.$_SESSION['admin']['pwd'].'"';
+        $result = db_exec($link,$search_query); 
+        if(mysqli_num_rows($result) == 1){
+            $admin = mysqli_fetch_assoc($result);
+            return $admin;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
 }
 
 // 显示验证码

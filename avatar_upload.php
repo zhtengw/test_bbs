@@ -22,6 +22,8 @@ if(isset($_POST['upload'])){
 			unlink($upload['path']);
 			skip_page($_SERVER['REQUEST_URI'],'error','头像修改失败，请重试！');
 		}
+	} else {
+		skip_page($_SERVER['REQUEST_URI'],'error',$upload['message']);
 	}
 }
 

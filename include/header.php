@@ -2,16 +2,19 @@
 	$thispage = basename($_SERVER['SCRIPT_NAME']);
 	//exit ($thispage);
     
-    if (!isset($template['title'])) $template['title']='AtenBBS';
+$query = 'select title,keywords,description from bbs_info';
+$result = db_exec($link,$query);
+$info = mysqli_fetch_assoc($result);
     
+if (!isset($template['title'])) $template['title']=$info['title'];
 ?>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8" />
-<title><?php echo $template['title'] ?> - AtenBBS</title>
-<meta name="keywords" content="" />
-<meta name="description" content="" />
+<title><?php echo $template['title'] ?> - <?php echo $info['title'];?></title>
+<meta name="keywords" content="<?php echo $info['keywords'];?>" />
+<meta name="description" content="<?php echo $info['description'];?>" />
 <?php foreach ($template['css'] as $css){?>
 <link rel="stylesheet" type="text/css" href="<?php echo $css ?>" />
 <?php }?>
@@ -19,15 +22,15 @@
 <body>
 	<div class="header_wrap">
 		<div id="header" class="auto">
-			<div class="logo">AtenBBS</div>
+			<div class="logo"><?php echo $info['title'];?></div>
 			<div class="nav">
 				<a <?php if($thispage == "index.php") echo 'class="hover"'; ?> href="index.php">首页</a>
 				<a <?php if($thispage == "publish.php") echo 'class="hover"'; ?> href="publish.php">新帖</a>
-				<a>话题</a>
+				<!--<a>话题</a>-->
 			</div>
 			<div class="search">
-				<form>
-					<input class="keyword" type="text" name="keyword" placeholder="搜索其实很简单" />
+				<form action="search.php">
+					<input class="keyword" type="text" name="keyword" placeholder="输入关键字搜索" />
 					<input class="submit" type="submit" name="submit" value="" />
 				</form>
 			</div>

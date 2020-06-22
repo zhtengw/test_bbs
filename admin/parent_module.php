@@ -9,6 +9,9 @@ if(isset($_GET['del']) && isset($_GET['url']) && isset($_GET['msg']) && isset($_
 
 $link = db_connect();
 
+if(!$admin=is_admin_login($link)){
+    header('Location:admin_login.php');
+}
 if(isset($_POST['submit'])){
     foreach($_POST['sort'] as $id => $sort){
         if(!is_numeric($id) || !is_numeric($sort)){
@@ -52,7 +55,7 @@ $html=<<<EOF
             <tr>
 				<td><input class="sort" type="text" name="sort[{$data['id']}]" value="{$data['sort']}" /></td>
 				<td>{$data['module_name']}</td>
-				<td><a href="#">[访问]</a>&nbsp;&nbsp;<a href="{$mod_url}">[编辑]</a>&nbsp;&nbsp;<a href="{$del_url}">[删除]</a></td>
+				<td><a href="../parent.php?id={$data['id']}">[访问]</a>&nbsp;&nbsp;<a href="{$mod_url}">[编辑]</a>&nbsp;&nbsp;<a href="{$del_url}">[删除]</a></td>
             </tr>
 EOF;
                     echo $html;

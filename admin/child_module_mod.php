@@ -12,6 +12,9 @@ $link = db_connect();
 if(!isset($data['id']) || !is_numeric($data['id'])){
     skip_page('child_module.php', 'error', '参数错误！');
 }
+if(!$admin=is_admin_login($link)){
+    header('Location:admin_login.php');
+}
 $query = 'select * from bbs_child_module where id='.$data['id'];
 $result = db_exec($link,$query);
 if(!record_count($link,$query)){

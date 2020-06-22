@@ -6,9 +6,7 @@ include_once 'common/mysql.php';
 $link = db_connect(); 
 
 $member = is_login($link);
-$template['title']='看帖';
-$template['css']=['style/public.css',
-                    'style/show.css'];
+$admin = is_admin_login($link);
 
 if(!isset($_GET['id'])||!is_numeric($_GET['id'])){
     header('Location:index.php');
@@ -49,12 +47,17 @@ $slice = 4;
 
 // 如果有回复id，当前页为这条回复所在页面
 if(isset($_GET['reply_id']) && is_numeric($_GET['reply_id']) && !isset($_GET['page'])){
-	$cur_reply_query = 'select * from bbs_reply where id<='.$_GET['reply_id'];
-	$cur_reply_count = record_count($link,$cur_reply_query);
-	$_GET['page'] = ceil($cur_reply_count/$slice);
+	$cur_reply_query = 'select id from bbs_reply where content_id='.$post['id'].' and id<='.$_GET['reply_id'];
+	if($cur_reply_count = record_count($link,$cur_reply_query)){
+		$_GET['page'] = ceil($cur_reply_count/$slice);
+	}
 }
 $page_btns = 5; // 显示的最大页码按钮数
 $paging = paging($reply_count,$slice,$_GET['page'],$page_btns);
+
+$template['title']=$post['title'];
+$template['css']=['style/public.css',
+                    'style/show.css'];
 
 ?>
 <?php include 'include/header.php' ;?>
@@ -100,8 +103,9 @@ $paging = paging($reply_count,$slice,$_GET['page'],$page_btns);
                     <?php   
                     }
                     ?>
-                    <?php
-                        if($post_member['id']==$member['id']){
+					<?php
+						// 对于发帖人、版主以及管理员都显示编辑按钮
+                        if($post_member['id']==$member['id']||$child['member_id']==$member['id']||$admin){
                     ?>
                         <span class="date">&nbsp;&nbsp;<a target='_blank' href='post_edit.php?id=<?php echo $post['id'];?>'>编辑</a></span>
                     <?php }?>
@@ -155,7 +159,8 @@ $paging = paging($reply_count,$slice,$_GET['page'],$page_btns);
                     }
                     ?>
                     <?php
-                        if($reply_member['id']==$member['id']){
+						// 对于发帖人、版主以及管理员都显示编辑按钮
+                        if($reply_member['id']==$member['id']||$child['member_id']==$member['id']||$admin){
                     ?>
                         <span class="date">&nbsp;&nbsp;<a target='_blank' href='reply_edit.php?id=<?php echo $reply['id'];?>'>编辑</a></span>
                     <?php }?>

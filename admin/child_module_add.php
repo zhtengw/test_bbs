@@ -7,6 +7,9 @@ $template['title']='添加子版块';
 
 $link = db_connect();
 
+if(!$admin=is_admin_login($link)){
+    header('Location:admin_login.php');
+}
 $char_max_num = char_max_len($link,'bbs_child_module','module_name');
 $char_max_info = char_max_len($link,'bbs_child_module','info');
 

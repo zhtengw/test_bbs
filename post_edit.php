@@ -5,8 +5,9 @@ include_once 'common/mysql.php';
 
 $link = db_connect(); 
 $char_max_title = char_max_len($link,'bbs_content','title');
-
-if(!$member = is_login($link)){
+$member = is_login($link);
+$admin = is_admin_login($link);
+if(!$member && !$admin){
     skip_page('login.php', 'error', '请先登录！');
 }
 
@@ -24,7 +25,13 @@ $post_result = db_exec($link,$post_query);
 if(!$post=mysqli_fetch_assoc($post_result)){
     skip_page('index.php', 'error', '该帖子不存在！');
 }
-if($post['member_id']!=$member['id']){
+
+$child_query = 'select * from bbs_child_module where id='.$post['module_id'];
+$child_result = db_exec($link,$child_query);
+$child=mysqli_fetch_assoc($child_result);
+
+
+if($post['member_id']!=$member['id'] && $child['member_id'] !=$member['id'] && !$admin ){
     skip_page('index.php', 'error', '您没有权限！');
 
 }
@@ -69,10 +76,6 @@ if(isset($_GET['post'])){
     $post['title']=$post_content['title'];
     $post['content']=$post_content['content'];
 }
-
-$child_query = 'select * from bbs_child_module where id='.$post['module_id'];
-$child_result = db_exec($link,$child_query);
-$child=mysqli_fetch_assoc($child_result);
 
 $parent_query = 'select * from bbs_parent_module where id='.$child['parent_module_id'];
 $parent_result = db_exec($link,$parent_query);

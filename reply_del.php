@@ -11,15 +11,21 @@ if(!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 }
 
 $link = db_connect();
-if(!$member = is_login($link)){
+$member = is_login($link);
+$admin = is_admin_login($link);
+if(!$member && !$admin){
     skip_page('login.php', 'error', '请先登录！');
 }
 
-$reply_query = 'select member_id from bbs_reply where id='.$_GET['id'];
+$reply_query = 'select member_id,content_id from bbs_reply where id='.$_GET['id'];
 $reply_result = db_exec($link,$reply_query);
-if($reply['member_id']!=$member['id']){
+$reply=mysqli_fetch_assoc($reply_result);
+$child_query = 'select child.member_id from bbs_child_module child,bbs_content where child.id=bbs_content.module_id and bbs_content.id='.$reply['content_id'];
+$child_result = db_exec($link,$child_query);
+$child=mysqli_fetch_assoc($child_result);
+// 发帖人、版主和后台管理员均有权限
+if($reply['member_id']!=$member['id'] && $child['member_id'] !=$member['id'] && !$admin ){
     skip_page('index.php', 'error', '您没有权限！');
-
 }
 
 // 删除回复

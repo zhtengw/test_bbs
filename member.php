@@ -6,6 +6,7 @@ include_once 'common/mysql.php';
 $link = db_connect(); 
 
 $member = is_login($link);
+$admin = is_admin_login($link);
 
 if(!isset($_GET['id'])||!is_numeric($_GET['id'])){
     skip_page('index.php', 'error', '访问错误！');
@@ -24,7 +25,7 @@ $slice = 10;
 $page_btns = 5; // 显示的最大页码按钮数
 $paging = paging($post_count,$slice,$_GET['page'],$page_btns);
 
-$template['title']='会员中心';
+$template['title']='用户'.$member_browse['name'];
 $template['css']=['style/public.css',
                     'style/list.css',
                     'style/member.css'];
@@ -63,7 +64,7 @@ $template['css']=['style/public.css',
 						<div class="titleWrap"><h2><a target="_blank" href="post.php?id=<?php echo $post['id'];?>"><?php echo $post['title'];?></a></h2></div>
 						<p>
                         <?php
-                            if($member_browse['id']==$member['id']){
+                            if($member_browse['id']==$member['id']||$admin){
                         ?>
                             <a target='_blank' href='post_edit.php?id=<?php echo $post['id'];?>'>编辑</a>
                         <?php }?>
@@ -95,10 +96,12 @@ $template['css']=['style/public.css',
 						<img width="180" height="180" src="<?php $avatar= empty($member_browse['photo'])? 'style/photo.jpg': $member_browse['photo']; echo $avatar; ?>" />
 					</dt>
 					<dd class="name"><?php echo $member_browse['name'];?></dd>
-                    <dd>帖子总计：<?php echo $post_count;?></dd>
+                    <dd>上次登录时间：<?php echo $member_browse['last_time'];?></dd>
+					<dd>帖子总计：<?php echo $post_count;?></dd>
                     <?php
                         if($member_browse['id']==$member['id']){
                     ?>
+					<br />
                     <dd>操作：<a target="_blank" href="avatar_upload.php">修改头像</a> | <a target="_blank" href="">修改密码</a></dd>
                     <?php }?>
 				</dl>

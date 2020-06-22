@@ -10,10 +10,6 @@ $member = is_login($link);
 
 $thispage=basename($_SERVER['SCRIPT_NAME']);
 
-$template['title']='子版块列表';
-$template['css']=['style/public.css',
-                'style/list.css'];
-
 if(!isset($_GET['id'])||!is_numeric($_GET['id'])){
     header('Location:index.php');
 }
@@ -42,6 +38,10 @@ $moderator=mysqli_fetch_assoc($moderator_result);
 $slice = 20;
 $page_btns = 5; // 显示的最大页码按钮数
 $paging = paging($post_count,$slice,$_GET['page'],$page_btns);
+
+$template['title']=$child['module_name'].' - '.$parent['module_name'];
+$template['css']=['style/public.css',
+                'style/list.css'];
 ?>
 <?php include 'include/header.php' ;?>
 	<?php include 'include/left.php' ;?>
