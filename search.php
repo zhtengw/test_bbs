@@ -10,14 +10,21 @@ $member = is_login($link);
 
 $thispage=basename($_SERVER['SCRIPT_NAME']);
 
-if(isset($_GET['keyword'])){
-    $keyword = $_GET['keyword'];
-}
+if(empty($_GET['keyword'])){
+    $search_result = '';
+    $search_count = 0;
 
-$search_query = 'select id,module_id,title,member_id,pub_time,views 
-            from bbs_content WHERE title like "%'.$keyword.'%" OR content like "%'.$keyword.'%"';
-$search_result = db_exec($link,$search_query);
-$search_count = mysqli_num_rows($search_result);
+    $result_msg = '请输入关键字搜索！';
+}else{
+    $keyword = $_GET['keyword'];
+
+    $search_query = 'select id,module_id,title,member_id,pub_time,views 
+                from bbs_content WHERE title like "%'.$keyword.'%" OR content like "%'.$keyword.'%"';
+    $search_result = db_exec($link,$search_query);
+    $search_count = mysqli_num_rows($search_result);
+
+    $result_msg = '含有 <span style="font-weight:bolder;">'.$keyword.'</span> 的帖子搜到 <span style="font-weight:bolder;">'.$search_count.'</span> 条结果';
+}
 
 
 // 每页帖子数，
@@ -39,7 +46,7 @@ $template['css']=['style/public.css',
 	<div id="main" class="auto">
 		<div id="left">
 			<div class="box_wrap">
-                含有 <span style="font-weight:bolder;"><?php echo $keyword;?></span> 的帖子搜到 <span style="font-weight:bolder;"><?php echo $search_count;?></span> 条结果
+                <?php echo $result_msg;?>
 				
 				<div class="pages_wrap">
 						<?php echo $paging['html'];?>
