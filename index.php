@@ -23,12 +23,12 @@ $template['css']=['style/public.css',
 		<ul class="postsList" style="padding:0 20px 0 20px;">
             <?php
             $max_num = 10;
-            //$post_query = 'select id,title,member_id,pub_time from bbs_content order by pub_time desc;';
             $post_query = 'select post.id,
                                 post.title,
                                 post.views,
                                 post.pub_time,
                                  member.name member_name,
+                                 member.id member_id,
                                  child.id child_id,
                                  child.module_name child_module_name,
                                  parent.id parent_id,

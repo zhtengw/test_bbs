@@ -30,7 +30,7 @@ if (!isset($template['title'])) $template['title']=$info['title'];
 			</div>
 			<div class="search">
 				<form action="search.php">
-					<input class="keyword" type="text" name="keyword" placeholder="输入关键字搜索" />
+					<input class="keyword" type="text" name="keyword" placeholder="输入关键字搜索" value="<?php echo $_GET['keyword'];?>" />
 					<input class="submit" type="submit" name="submit" value="" />
 				</form>
 			</div>

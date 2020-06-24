@@ -16,14 +16,12 @@ if(empty($_GET['keyword'])){
 
     $result_msg = '请输入关键字搜索！';
 }else{
-    $keyword = $_GET['keyword'];
+    $keyword = real_string($link,$_GET['keyword']);
 
-    $search_query = 'select id,module_id,title,member_id,pub_time,views 
-                from bbs_content WHERE title like "%'.$keyword.'%" OR content like "%'.$keyword.'%"';
-    $search_result = db_exec($link,$search_query);
-    $search_count = mysqli_num_rows($search_result);
+    $search_query = 'select id from bbs_content WHERE title like "%'.$keyword.'%" OR content like "%'.$keyword.'%"';
+    $search_count = record_count($link,$search_query);
 
-    $result_msg = '含有 <span style="font-weight:bolder;">'.$keyword.'</span> 的帖子搜到 <span style="font-weight:bolder;">'.$search_count.'</span> 条结果';
+    $result_msg = '含有 <span style="font-weight:bolder;">'.$_GET['keyword'].'</span> 的帖子搜到 <span style="font-weight:bolder;">'.$search_count.'</span> 条结果';
 }
 
 
@@ -56,9 +54,15 @@ $template['css']=['style/public.css',
 			<div style="clear:both;"></div>
 			<ul class="postsList">
                 <?php
-                // Todo: 最后回复的帖子顶到最前
+                if($search_count){
+                // 为了添加分页，重新查询
+                    $search_query = 'select id,module_id,title,member_id,pub_time,views 
+                                from bbs_content WHERE title like "%'.$keyword.'%" OR content like "%'.$keyword.'%" '.$paging['sql'];
+                    $search_result = db_exec($link,$search_query);
+                    $search_count = mysqli_num_rows($search_result);
                     while($post=mysqli_fetch_assoc($search_result)){
                         $post['title']=htmlspecialchars($post['title']);
+                        $post['title_highlight']=str_replace($keyword,'<span style="color:red">'.$keyword.'</span>',$post['title']);
 
 						$reply_query = 'select * from bbs_reply where content_id='.$post['id'].' order by pub_time desc';
                         $reply_result = db_exec($link,$reply_query);
@@ -94,7 +98,11 @@ $template['css']=['style/public.css',
 						</a>
 					</div>
 					<div class="subject">
-						<div class="titleWrap"><a href="child.php?id=<?php echo $info['child_id'];?>">[<?php echo $info['child_module_name'];?>]</a>&nbsp;&nbsp;<h2><a href="post.php?id=<?php echo $post['id'];?>"><?php echo $post['title'];?></a></h2></div>
+						<div class="titleWrap">
+                            <a href="parent.php?id=<?php echo $info['parent_id'];?>">[<?php echo $info['parent_module_name'];?>]</a>
+                            <a href="child.php?id=<?php echo $info['child_id'];?>">[<?php echo $info['child_module_name'];?>]</a>
+                            &nbsp;&nbsp;<h2><a href="post.php?id=<?php echo $post['id'];?>"><?php echo $post['title_highlight'];?></a></h2>
+                        </div>
 						<p>
                             楼主：<a style="color:#999" href="member.php?id=<?php echo $info['member_id'];?>"><?php echo $info['member_name'];?></a>
                             &nbsp;<?php echo $post['pub_time'];?>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -113,6 +121,7 @@ $template['css']=['style/public.css',
 				</li>
                 <?php
                     }
+                }
                 ?>
 				
 				
